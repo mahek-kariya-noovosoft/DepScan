@@ -48,6 +48,7 @@ describe('fetchNpmData', () => {
       license: 'MIT',
       latestVersion: '4.18.2',
       description: 'Fast web framework',
+      repositoryUrl: undefined,
     });
   });
 

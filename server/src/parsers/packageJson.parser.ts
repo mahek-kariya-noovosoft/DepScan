@@ -4,6 +4,7 @@ const MAX_DEPENDENCIES = 50
 
 export function parsePackageJson(content: string): {
   dependencies: ParsedDependency[]
+  totalCount: number
   wasTruncated: boolean
 } {
   let parsed: unknown
@@ -31,7 +32,7 @@ export function parsePackageJson(content: string): {
   const wasTruncated = allDeps.length > MAX_DEPENDENCIES
   const dependencies = wasTruncated ? allDeps.slice(0, MAX_DEPENDENCIES) : allDeps
 
-  return { dependencies, wasTruncated }
+  return { dependencies, totalCount: allDeps.length, wasTruncated }
 }
 
 function extractEntries(

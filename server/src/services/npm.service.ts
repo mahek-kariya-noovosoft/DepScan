@@ -4,6 +4,7 @@ export interface NpmData {
   license: string | null;
   latestVersion: string;
   description: string;
+  repositoryUrl?: string;
 }
 
 interface NpmRegistryResponse {
@@ -11,6 +12,7 @@ interface NpmRegistryResponse {
   license?: string;
   description?: string;
   'dist-tags'?: { latest?: string };
+  repository?: { type?: string; url?: string } | string;
 }
 
 interface NpmDownloadsResponse {
@@ -63,12 +65,22 @@ export async function fetchNpmData(packageName: string): Promise<NpmData | null>
       weeklyDownloads = downloadsData.downloads ?? 0;
     }
 
+    let repositoryUrl: string | undefined;
+    if (typeof registryData.repository === 'object' && registryData.repository?.url) {
+      repositoryUrl = registryData.repository.url
+        .replace(/^git\+/, '')
+        .replace(/\.git$/, '');
+    } else if (typeof registryData.repository === 'string') {
+      repositoryUrl = registryData.repository;
+    }
+
     return {
       lastPublishDate,
       weeklyDownloads,
       license: registryData.license ?? null,
       latestVersion,
       description: registryData.description ?? '',
+      repositoryUrl,
     };
   } catch {
     return null;
