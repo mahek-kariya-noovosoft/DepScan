@@ -14,7 +14,27 @@ DepScan is a dependency risk scanner. Users paste a package.json file and get a 
 This is a monorepo with client/ and server/ directories.
 - client/ — React frontend (Vite)
 - server/ — Express backend
-- Shared types go in shared/types/
+- shared/types/ — Shared TypeScript interfaces (imported via `@shared/*` path alias)
+
+### Server directory layout
+```
+server/src/
+  parsers/         — Input parsing (packageJson.parser.ts)
+  validation/      — Zod schemas (analyze.schema.ts)
+  services/        — External API clients (npm, github, osv, ai)
+  scoring/         — Pure scoring functions (signals.ts, aggregate.ts)
+  orchestrator/    — Orchestration logic (analyzer.ts)
+  routes/          — Express route handlers (analyze.route.ts)
+  app.ts           — Express app setup
+  index.ts         — Server entry point
+```
+
+### File naming conventions
+- Services: `*.service.ts` (e.g., `npm.service.ts`)
+- Parsers: `*.parser.ts`
+- Routes: `*.route.ts`
+- Schemas: `*.schema.ts`
+- Tests: co-located as `*.test.ts` next to source
 
 ## Coding Standards
 - Use TypeScript strict mode everywhere
@@ -43,13 +63,25 @@ This is a monorepo with client/ and server/ directories.
 - `cd server && npm run dev` — Start backend dev server
 - `cd server && npm test` — Run backend tests
 - `cd client && npm test` — Run frontend tests
-- `npm run lint` — Lint entire project
+- `npm test` — Run all workspace tests from root
+- `npm run lint` — Lint entire project (tsc --noEmit for both client and server)
 
 ## Architecture Decisions
 - The scoring engine must be pure functions with no side effects (easily testable)
 - External API calls are isolated in individual service files (npm.service.ts, github.service.ts, osv.service.ts)
 - The frontend fetches data via a single POST /api/analyze endpoint
 - Risk scoring happens on the backend, not the frontend
+- Services return `null` on failure (never throw) — the orchestrator uses Promise.allSettled
+- Parsers throw on invalid input — route handlers catch and return 400
+- Route handlers only validate + delegate to orchestrator — no business logic in routes
+- Orchestrator caps at 50 deps with p-limit concurrency of 5
+- TypeScript path alias `@shared/*` resolves to `../shared/*` (configured in tsconfig + vite.config)
+- No project references — use direct file inclusion (`include: ["../shared/types/**/*"]`) instead
+
+## Testing Patterns
+- Unit tests: mock `fetch` with `vi.stubGlobal('fetch', mockFn)` for service tests
+- Integration tests: mock services with `vi.mock()` and use supertest against the Express app
+- Scoring tests: call pure functions directly — no mocking needed
 
 ## ❌ DO NOT DO THIS (Updated as mistakes happen)
 - DO NOT use `any` type in TypeScript — always define proper interfaces
@@ -60,3 +92,5 @@ This is a monorepo with client/ and server/ directories.
 - DO NOT create massive files over 300 lines — split into smaller modules
 - DO NOT skip writing tests for the scoring engine — this is the core logic
 - DO NOT use relative imports that go up more than 2 levels (../../..) — use path aliases
+- DO NOT use TypeScript project references (`references` in tsconfig) — use direct file inclusion with `include` array instead (caused TS6305/TS6059 errors)
+- DO NOT throw errors in service files — return null and let the orchestrator handle partial data
