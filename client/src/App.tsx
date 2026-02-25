@@ -1,15 +1,9 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { LandingPage } from './pages/LandingPage'
+import { DashboardPage } from './pages/DashboardPage'
 
-function Placeholder({ label }: { label: string }) {
-  return <div className="p-8 text-gray-400">{label} — coming soon</div>
-}
-
-export function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Placeholder label="Landing Page" />} />
-      <Route path="/dashboard" element={<Placeholder label="Dashboard" />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
-}
+export const router = createBrowserRouter([
+  { path: '/', element: <LandingPage /> },
+  { path: '/dashboard', element: <DashboardPage /> },
+  { path: '*', element: <Navigate to="/" replace /> },
+])
