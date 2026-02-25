@@ -20,6 +20,7 @@ describe('scoreStaleness', () => {
     expect(result.score).toBeGreaterThanOrEqual(0);
     expect(result.score).toBeLessThanOrEqual(10);
     expect(result.signal).toBe('staleness');
+    expect(result.weight).toBe(0.25);
   });
 
   it('should return moderate risk for package published 8 months ago', () => {
@@ -28,7 +29,7 @@ describe('scoreStaleness', () => {
     const result = scoreStaleness(eightMonthsAgo.toISOString());
     expect(result.available).toBe(true);
     expect(result.score).toBeGreaterThanOrEqual(10);
-    expect(result.score).toBeLessThanOrEqual(30);
+    expect(result.score).toBeLessThanOrEqual(35);
   });
 
   it('should return high risk for package published 18 months ago', () => {
@@ -36,8 +37,8 @@ describe('scoreStaleness', () => {
     eighteenMonthsAgo.setMonth(eighteenMonthsAgo.getMonth() - 18);
     const result = scoreStaleness(eighteenMonthsAgo.toISOString());
     expect(result.available).toBe(true);
-    expect(result.score).toBeGreaterThanOrEqual(30);
-    expect(result.score).toBeLessThanOrEqual(60);
+    expect(result.score).toBeGreaterThanOrEqual(35);
+    expect(result.score).toBeLessThanOrEqual(75);
   });
 
   it('should return very high risk for package published 3 years ago', () => {
@@ -45,8 +46,15 @@ describe('scoreStaleness', () => {
     threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
     const result = scoreStaleness(threeYearsAgo.toISOString());
     expect(result.available).toBe(true);
-    expect(result.score).toBeGreaterThanOrEqual(60);
+    expect(result.score).toBeGreaterThanOrEqual(75);
     expect(result.score).toBeLessThanOrEqual(100);
+  });
+
+  it('should cap at 100 for packages published 5+ years ago', () => {
+    const fiveYearsAgo = new Date();
+    fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+    const result = scoreStaleness(fiveYearsAgo.toISOString());
+    expect(result.score).toBe(100);
   });
 
   it('should return available: false when lastPublishDate is undefined', () => {
@@ -104,28 +112,38 @@ describe('scoreVulnerabilities', () => {
 // ── scoreBusFactor ──────────────────────────────────────────────────
 
 describe('scoreBusFactor', () => {
-  it('should return 90 for single contributor', () => {
+  it('should return 95 for single contributor', () => {
     const result = scoreBusFactor(1);
-    expect(result.score).toBe(90);
+    expect(result.score).toBe(95);
   });
 
-  it('should return 60 for 2 contributors', () => {
+  it('should return 70 for 2 contributors', () => {
     const result = scoreBusFactor(2);
-    expect(result.score).toBe(60);
+    expect(result.score).toBe(70);
   });
 
-  it('should return 30 for 3-5 contributors', () => {
-    expect(scoreBusFactor(3).score).toBe(30);
-    expect(scoreBusFactor(5).score).toBe(30);
+  it('should return 50 for 3-5 contributors', () => {
+    expect(scoreBusFactor(3).score).toBe(50);
+    expect(scoreBusFactor(5).score).toBe(50);
   });
 
-  it('should return 10 for 6-20 contributors', () => {
-    expect(scoreBusFactor(6).score).toBe(10);
-    expect(scoreBusFactor(20).score).toBe(10);
+  it('should return 30 for 6-10 contributors', () => {
+    expect(scoreBusFactor(6).score).toBe(30);
+    expect(scoreBusFactor(10).score).toBe(30);
   });
 
-  it('should return 0 for 20+ contributors', () => {
-    expect(scoreBusFactor(21).score).toBe(0);
+  it('should return 15 for 11-20 contributors', () => {
+    expect(scoreBusFactor(11).score).toBe(15);
+    expect(scoreBusFactor(20).score).toBe(15);
+  });
+
+  it('should return 5 for 21-50 contributors', () => {
+    expect(scoreBusFactor(21).score).toBe(5);
+    expect(scoreBusFactor(50).score).toBe(5);
+  });
+
+  it('should return 0 for 50+ contributors', () => {
+    expect(scoreBusFactor(51).score).toBe(0);
     expect(scoreBusFactor(100).score).toBe(0);
   });
 
@@ -173,6 +191,7 @@ describe('scoreOpenIssues', () => {
 describe('scoreDownloadTrend', () => {
   it('should return 80 for fewer than 100 weekly downloads', () => {
     expect(scoreDownloadTrend(50).score).toBe(80);
+    expect(scoreDownloadTrend(50).weight).toBe(0.05);
   });
 
   it('should return 50 for 100-1000 weekly downloads', () => {

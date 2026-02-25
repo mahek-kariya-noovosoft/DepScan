@@ -19,7 +19,7 @@ import {
   scoreLicense,
   scoreVersionPinning,
 } from '../scoring/signals.js'
-import { calculateRiskScore, calculateGrade, getRiskLevel } from '../scoring/aggregate.js'
+import { calculateRiskScore, calculateGrade, calculateOverallScore, getRiskLevel } from '../scoring/aggregate.js'
 import { getAiRecommendation } from '../services/ai.service.js'
 
 const CONCURRENCY = 5
@@ -106,17 +106,20 @@ export async function analyzeDependencies(content: string): Promise<AnalysisResu
   // Sort by risk score descending (highest risk first)
   results.sort((depA, depB) => depB.riskScore - depA.riskScore)
 
-  const overallScore =
-    results.length > 0
-      ? Math.round((results.reduce((sum, dep) => sum + dep.riskScore, 0) / results.length) * 100) / 100
-      : 0
-
-  const grade = calculateGrade(overallScore)
-
   const riskCounts = { critical: 0, high: 0, medium: 0, low: 0 }
   for (const dep of results) {
     riskCounts[dep.riskLevel]++
   }
+
+  let overallScore = 0
+  if (results.length > 0) {
+    const average = results.reduce((sum, dep) => sum + dep.riskScore, 0) / results.length
+    const maxScore = results[0].riskScore
+    const highAndCriticalCount = riskCounts.critical + riskCounts.high
+    overallScore = calculateOverallScore(average, maxScore, highAndCriticalCount)
+  }
+
+  const grade = calculateGrade(overallScore)
 
   const aiRecommendation = await getAiRecommendation(results)
 

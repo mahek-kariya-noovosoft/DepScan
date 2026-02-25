@@ -1,11 +1,11 @@
 import type { SignalScore } from '@shared/types';
 
 const WEIGHTS = {
-  staleness: 0.20,
+  staleness: 0.25,
   vulnerabilities: 0.25,
   busFactor: 0.15,
   openIssues: 0.10,
-  downloadTrend: 0.10,
+  downloadTrend: 0.05,
   license: 0.10,
   versionPinning: 0.10,
 } as const;
@@ -47,14 +47,14 @@ export function scoreStaleness(lastPublishDate: string | undefined): SignalScore
     // 0-6 months → 0-10 (linear interpolation)
     score = (monthsAgo / 6) * 10;
   } else if (monthsAgo <= 12) {
-    // 6-12 months → 10-30
-    score = 10 + ((monthsAgo - 6) / 6) * 20;
+    // 6-12 months → 10-35
+    score = 10 + ((monthsAgo - 6) / 6) * 25;
   } else if (monthsAgo <= 24) {
-    // 12-24 months → 30-60
-    score = 30 + ((monthsAgo - 12) / 12) * 30;
+    // 12-24 months → 35-75
+    score = 35 + ((monthsAgo - 12) / 12) * 40;
   } else {
-    // 24+ months → 60-100 (cap at 100)
-    score = Math.min(100, 60 + ((monthsAgo - 24) / 24) * 40);
+    // 24+ months → 75-100 (cap at 100)
+    score = Math.min(100, 75 + ((monthsAgo - 24) / 24) * 25);
   }
 
   const years = (monthsAgo / 12).toFixed(1);
@@ -106,13 +106,17 @@ export function scoreBusFactor(contributorCount: number | undefined): SignalScor
 
   let score: number;
   if (contributorCount <= 1) {
-    score = 90;
+    score = 95;
   } else if (contributorCount === 2) {
-    score = 60;
+    score = 70;
   } else if (contributorCount <= 5) {
+    score = 50;
+  } else if (contributorCount <= 10) {
     score = 30;
   } else if (contributorCount <= 20) {
-    score = 10;
+    score = 15;
+  } else if (contributorCount <= 50) {
+    score = 5;
   } else {
     score = 0;
   }

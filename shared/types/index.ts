@@ -76,7 +76,7 @@ export interface DependencyResult {
 // ── Overall analysis result ──────────────────────────────────────────
 
 export interface AnalysisResult {
-  overallScore: number // average risk score across all deps
+  overallScore: number // weighted project risk score (average, max, high-risk penalty)
   grade: Grade
   totalDependencies: number // total in the package.json (before cap)
   analyzedCount: number // may be ≤ 50
