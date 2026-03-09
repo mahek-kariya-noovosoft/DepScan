@@ -65,6 +65,8 @@ server/src/
 - `cd client && npm test` — Run frontend tests
 - `npm test` — Run all workspace tests from root
 - `npm run lint` — Lint entire project (tsc --noEmit for both client and server)
+- `npx prisma migrate dev` — Run database migrations
+- `npx prisma studio` — Open database GUI
 
 ## Architecture Decisions
 - The scoring engine must be pure functions with no side effects (easily testable)
@@ -77,6 +79,13 @@ server/src/
 - Orchestrator caps at 50 deps with p-limit concurrency of 5
 - TypeScript path alias `@shared/*` resolves to `../shared/*` (configured in tsconfig + vite.config)
 - No project references — use direct file inclusion (`include: ["../shared/types/**/*"]`) instead
+- Authenticated services (repos, overview, auth) use `ServiceResult<T>` pattern:
+  `type ServiceResult<T> = { success: true; data: T } | { success: false; error: string; status: number }`
+- Route handlers ONLY do: validate input → call service → map ServiceResult to HTTP response
+- Route handler functions must stay under 30 lines — extract all logic to services
+- Database operations are isolated in service files, never in routes
+- Each feature gets its own service file (auth.service.ts, repos.service.ts, overview.service.ts)
+- Prisma client is initialized once in db.service.ts, imported everywhere else
 
 ## Testing Patterns
 - Unit tests: mock `fetch` with `vi.stubGlobal('fetch', mockFn)` for service tests
@@ -94,3 +103,10 @@ server/src/
 - DO NOT use relative imports that go up more than 2 levels (../../..) — use path aliases
 - DO NOT use TypeScript project references (`references` in tsconfig) — use direct file inclusion with `include` array instead (caused TS6305/TS6059 errors)
 - DO NOT throw errors in service files — return null and let the orchestrator handle partial data
+- DO NOT put database queries in route handlers — use service layer
+- DO NOT put GitHub API calls in route handlers — use service layer
+- DO NOT throw errors in authenticated service files — use `ServiceResult<T>` pattern
+- DO NOT build multiple features in a single agent session — one feature per agent
+- DO NOT skip @follow-up between features
+- DO NOT let route handler functions exceed 30 lines
+- DO NOT store tokens or secrets unencrypted in the database
