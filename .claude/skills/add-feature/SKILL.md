@@ -1,7 +1,6 @@
 ---
 name: add-feature
 description: Interview-driven feature planning and implementation. Use when adding a new feature to DepScan. Asks questions first, creates a plan, then builds.
-disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 

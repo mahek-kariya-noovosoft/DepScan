@@ -1,7 +1,6 @@
 ---
 name: commit
 description: Analyzes git changes and creates a conventional commit with the right prefix and descriptive message. Use after completing any code change.
-disable-model-invocation: true
 allowed-tools: Read, Bash, Grep, Glob
 ---
 

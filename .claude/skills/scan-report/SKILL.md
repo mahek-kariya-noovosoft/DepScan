@@ -1,7 +1,6 @@
 ---
 name: scan-report
 description: Runs a DepScan analysis and generates a formatted risk report for a package.json. Use when you want a detailed written report instead of the dashboard.
-disable-model-invocation: true
 allowed-tools: Read, Bash
 ---
 
