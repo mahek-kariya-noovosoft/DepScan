@@ -97,6 +97,20 @@ export type ServiceResult<T> =
   | { success: true; data: T }
   | { success: false; error: string; status: number }
 
+// ── Auth types ───────────────────────────────────────────────────────
+
+export interface GithubProfile {
+  id: number
+  login: string
+  avatarUrl: string
+}
+
+export interface AuthUser {
+  id: string
+  githubUsername: string
+  avatarUrl: string
+}
+
 // ── API contract ─────────────────────────────────────────────────────
 
 export interface AnalyzeRequest {
