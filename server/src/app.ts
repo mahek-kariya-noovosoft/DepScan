@@ -3,6 +3,7 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { analyzeRouter } from './routes/analyze.route.js'
 import { authRouter } from './routes/auth.route.js'
+import { reposRouter } from './routes/repos.route.js'
 
 export const app = express()
 
@@ -16,3 +17,4 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api', analyzeRouter)
 app.use('/api/auth', authRouter)
+app.use('/api/repos', reposRouter)

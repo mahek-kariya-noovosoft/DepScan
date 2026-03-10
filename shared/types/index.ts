@@ -111,6 +111,47 @@ export interface AuthUser {
   avatarUrl: string
 }
 
+// ── Repos types ──────────────────────────────────────────────────────
+
+export interface GithubRepo {
+  id: number
+  name: string
+  fullName: string
+  defaultBranch: string
+  language: string | null
+  stars: number
+  updatedAt: string // ISO date
+}
+
+// API response shapes (Prisma dates serialized as ISO strings over JSON)
+export interface ApiRepo {
+  id: string
+  userId: string
+  githubRepoId: number
+  name: string
+  fullName: string
+  defaultBranch: string
+  language: string | null
+  stars: number
+  lastScannedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ApiScanResult {
+  id: string
+  repoId: string
+  overallScore: number
+  grade: string
+  riskCounts: string // JSON string: { critical, high, medium, low }
+  dependencies: string // JSON string: DependencyResult[]
+  scannedAt: string // ISO date
+}
+
+export interface RepoWithScan extends ApiRepo {
+  latestScan?: ApiScanResult
+}
+
 // ── API contract ─────────────────────────────────────────────────────
 
 export interface AnalyzeRequest {
