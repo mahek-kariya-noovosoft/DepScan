@@ -91,6 +91,12 @@ export interface AnalysisResult {
   aiRecommendation: string // placeholder for now
 }
 
+// ── Service result pattern ────────────────────────────────────────────
+
+export type ServiceResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string; status: number }
+
 // ── API contract ─────────────────────────────────────────────────────
 
 export interface AnalyzeRequest {

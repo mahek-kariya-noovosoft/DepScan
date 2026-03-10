@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id             String   @id @default(cuid())
+  githubId       Int      @unique
+  githubUsername String
+  avatarUrl      String
+  accessToken    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  repos          Repo[]
+}
+
+model Repo {
+  id            String       @id @default(cuid())
+  userId        String
+  githubRepoId  Int          @unique
+  name          String
+  fullName      String
+  defaultBranch String       @default("main")
+  language      String?
+  stars         Int          @default(0)
+  lastScannedAt DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  user          User         @relation(fields: [userId], references: [id])
+  scanResults   ScanResult[]
+}
+
+model ScanResult {
+  id           String   @id @default(cuid())
+  repoId       String
+  overallScore Float
+  grade        String
+  riskCounts   String
+  dependencies String
+  scannedAt    DateTime @default(now())
+  repo         Repo     @relation(fields: [repoId], references: [id])
+}

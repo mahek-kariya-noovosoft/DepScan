@@ -19,9 +19,10 @@ This is a monorepo with client/ and server/ directories.
 ### Server directory layout
 ```
 server/src/
+  db/              — Prisma singleton (prisma.ts) and test setup (test-setup.ts)
   parsers/         — Input parsing (packageJson.parser.ts)
   validation/      — Zod schemas (analyze.schema.ts)
-  services/        — External API clients (npm, github, osv, ai)
+  services/        — DB + external API clients (db.service.ts, npm, github, osv, ai)
   scoring/         — Pure scoring functions (signals.ts, aggregate.ts)
   orchestrator/    — Orchestration logic (analyzer.ts)
   routes/          — Express route handlers (analyze.route.ts)
@@ -85,7 +86,7 @@ server/src/
 - Route handler functions must stay under 30 lines — extract all logic to services
 - Database operations are isolated in service files, never in routes
 - Each feature gets its own service file (auth.service.ts, repos.service.ts, overview.service.ts)
-- Prisma client is initialized once in db.service.ts, imported everywhere else
+- Prisma client is initialized once in `server/src/db/prisma.ts` (lazy singleton via Proxy), imported everywhere else
 
 ## Testing Patterns
 - Unit tests: mock `fetch` with `vi.stubGlobal('fetch', mockFn)` for service tests
